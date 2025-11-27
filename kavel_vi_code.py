@@ -1,22 +1,22 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon, Circle
 import numpy as np
+from matplotlib.ticker import MultipleLocator
 
-max_afstand_turbine = 1100
+max_afstand_turbine = 1000
 totaal_vermogen = 0
 
 turbines = [
-    # --- Rij 1 (Noord) ---
-    (558000, 5850000),
+        # --- Rij 1 (Noord) ---
+    (558300, 5850800),
     
     # --- Rij 2 ---
-    (555000, 5846500),
+    (556900, 5849200),(559000, 5849200),
     
     # --- Rij 3 ---
-    (554000, 5845000)
+    (554000, 5845000),
+
     
-    # ... Voeg hier meer regels toe tot je er 50 hebt! ...
-    # (Dit zijn er nu even 9 als voorbeeld)
 ]
 
 # Het TenneT Stopcontact (Alpha Platform) - Vaste locatie
@@ -352,8 +352,8 @@ def validate_turbines(turbines):
         # Check 4: Te dichtbij andere windmolen(s)?
         for turbine in turbines:
             if t[0] == turbine[0] and t[1] == turbine[1]: continue  # Gaf anders weird outputs
-            dist = np.sqrt((t[0]-turbine[0])**2 + (t[1]-turbine[1])**2) #Kan traag gaan vanwege teveel turbis
-            #print(str(t[0]) + " " + str(t[1]) + " Afstand: " + str(dist))
+            dist = np.sqrt((turbine[0]-t[0])**2 + (turbine[1]-t[1])**2) #Kan traag gaan vanwege teveel turbis
+            print(str(t[0]) + " " + str(t[1]) + " Afstand: " + str(dist) + " Tot " + str(turbine[0]) + " " + str(turbine[1]))
             if dist < max_afstand_turbine: is_ok = False
         
         if is_ok: valid.append(t)
@@ -402,6 +402,8 @@ def bereken_kabels(turbines):
 # A. Validatie
 goede_turbines, slechte_turbines = validate_turbines(turbines) 
 
+for turbine in slechte_turbines:
+    print("Slechte Turbine: "+str(turbine[0]) + " " + str(turbine[1]))
 # Check if we have turbines left before calculating cables
 if not goede_turbines:
     print("Geen geldige turbines gevonden!")
@@ -423,20 +425,20 @@ print("Totaal vermogen: " + str(totaal_vermogen) + "MW")
 def plot_turbine_buffers(turbine_list, max_dist):
     """Plots turbines with a 100m inner safety zone and max distance outer zone."""
     for i, t in enumerate(turbine_list):
-        label_100 = "Turbine (100m safety)" if i == 0 else None
+        label_100 = "Turbine (240m safety)" if i == 0 else None
         label_max = f"Turbine Max Dist ({max_dist}m)" if i == 0 else None
         
         # 1. Plot the turbine center point
         ax.plot(t[0], t[1], marker='^', color='green', markersize=6, zorder=5)
         
         # 2. Draw the 100m circle (Inner)
-        circle_100 = Circle(t, radius=100, color='green', alpha=0.5, 
+        circle_100 = Circle(t, radius=120, color='green', alpha=0.5, 
                             linestyle='-', label=label_100)
         ax.add_patch(circle_100)
         
         # 3. Draw the Max Distance circle (Outer)
         # We use fill=False to keep the map readable
-        circle_max = Circle(t, radius=max_dist, edgecolor='green', facecolor='none', 
+        circle_max = Circle(t, radius=max_dist/2, edgecolor='green', facecolor='none', 
                             linestyle=':', alpha=0.6, label=label_max)
         ax.add_patch(circle_max)
 
@@ -456,17 +458,42 @@ ax.set_aspect('equal')
 ax.set_title("Constraint Map Kavel VI (Incl. Archeologie & Wrakken)")
 ax.set_xlabel("Easting (UTM31N)")
 ax.set_ylabel("Northing (UTM31N)")
-ax.grid(True, linestyle='--', alpha=0.5)
 
-# Legenda (zorgen dat hij niet over de kaart heen valt)
-ax.legend(loc='upper left', framealpha=0.9)
+# --- A. Grid Instellingen (Raster verfijnen) ---
+# 1. Zet de dikke lijnen (Major) om de 1000 meter (1 km)
+major_interval = 1000 
+ax.xaxis.set_major_locator(MultipleLocator(major_interval))
+ax.yaxis.set_major_locator(MultipleLocator(major_interval))
 
-# Automatisch inzoomen op de kavel
+# 2. Zet de dunne lijntjes (Minor) om de 100 meter (voor precisie)
+minor_interval = 100 
+ax.xaxis.set_minor_locator(MultipleLocator(minor_interval))
+ax.yaxis.set_minor_locator(MultipleLocator(minor_interval))
+
+# 3. Teken het grid
+# Major grid (donkerder)
+ax.grid(which='major', color='#CCCCCC', linestyle='-', linewidth=1.2, alpha=0.8)
+# Minor grid (lichter en dunner)
+ax.grid(which='minor', color='#E5E5E5', linestyle=':', linewidth=0.8, alpha=0.6)
+# Zet 'minorticks' aan zodat de lijntjes zichtbaar worden
+ax.minorticks_on()
+
+
+# --- B. Tekst Rotatie ---
+# Roteer de labels op de X-as 90 graden (verticaal)
+ax.tick_params(axis='x', rotation=90, labelsize=10)
+
+
+# --- C. Overige Opmaak ---
+# Legenda
+ax.legend(loc='upper left', framealpha=0.9, fontsize='small')
+
+# Zoom automatisch in op de kavel met een beetje marge
 x_val, y_val = zip(*kavel_coords)
-ax.set_xlim(min(x_val) - 2000, max(x_val) + 2000)
-ax.set_ylim(min(y_val) - 2000, max(y_val) + 2000)
+marge = 1000
+ax.set_xlim(min(x_val) - marge, max(x_val) + marge)
+ax.set_ylim(min(y_val) - marge, max(y_val) + marge)
 
+plt.tight_layout() # Zorgt dat de verticale tekst niet van het plaatje valt
 plt.show()
-
-
 
