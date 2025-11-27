@@ -1,6 +1,30 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon, Circle
 import numpy as np
+
+max_afstand_turbine = 1100
+totaal_vermogen = 0
+
+turbines = [
+    # --- Rij 1 (Noord) ---
+    (558000, 5850000),
+    
+    # --- Rij 2 ---
+    (555000, 5846500),
+    
+    # --- Rij 3 ---
+    (554000, 5845000)
+    
+    # ... Voeg hier meer regels toe tot je er 50 hebt! ...
+    # (Dit zijn er nu even 9 als voorbeeld)
+]
+
+# Het TenneT Stopcontact (Alpha Platform) - Vaste locatie
+SUBSTATION = (557366.0, 5838067.0)
+
+
+
+
 # --- 1. DATA INPUT ---
 
 # A. Kavelgrens (Site VI)
@@ -300,16 +324,132 @@ plot_circles(mijnbouw_putten, 'red', 'X', 'Mijnbouwput (100m)')
 plot_circles(wrakken_gevonden, 'black', 'o', 'Wrak (100m)')
 plot_circles(magnetische_anomalieen, 'orange', '.', 'Magnetisch Contact (100m)')
 
-# D. Wind Vector (Pijl)
-wind_x = 550000
-wind_y = 5845000
-wind_richting = 225 # ZW
-# Pijl wijst naar NO (45 graden)
-u = np.sin(np.radians(wind_richting - 180)) 
-v = np.cos(np.radians(wind_richting - 180)) 
 
-ax.quiver(wind_x, wind_y, u, v, scale=20, width=0.005, color='orange')
-ax.text(wind_x - 500, wind_y - 500, f"Dominante Wind\n({wind_richting}° ZW)", color='orange', fontweight='bold')
+
+###################################################################################################################
+def validate_turbines(turbines):
+    """Kijkt of je handmatige punten legaal zijn"""
+    valid = []
+    invalid = []
+    
+    path_kavel = Path(kavel_coords)
+    
+    for t in turbines:
+        is_ok = True
+        
+        # Check 1: Binnen Kavel?
+        if not path_kavel.contains_point(t): is_ok = False
+            
+        # Check 2: In Onderhoudszone?
+        for zone in onderhouds_zones:
+            if Path(zone).contains_point(t): is_ok = False
+        
+        # Check 3: Te dicht bij put/wrak (100m)?
+        for obs in mijnbouw_putten + wrakken + magnetische_anomalieen:
+            dist = np.sqrt((t[0]-obs[0])**2 + (t[1]-obs[1])**2)
+            if dist < 100: is_ok = False
+        
+        # Check 4: Te dichtbij andere windmolen(s)?
+        for turbine in turbines:
+            if t[0] == turbine[0] and t[1] == turbine[1]: continue  # Gaf anders weird outputs
+            dist = np.sqrt((t[0]-turbine[0])**2 + (t[1]-turbine[1])**2) #Kan traag gaan vanwege teveel turbis
+            #print(str(t[0]) + " " + str(t[1]) + " Afstand: " + str(dist))
+            if dist < max_afstand_turbine: is_ok = False
+        
+        if is_ok: valid.append(t)
+        else: invalid.append(t)
+        
+    return valid, invalid
+
+def bereken_kabels(turbines):
+    """
+    Verbindt jouw turbines automatisch met het substation.
+    Strategie: We maken clusters van max 6 turbines.
+    """
+    # 1. Sorteer turbines van Ver (Noord) naar Dichtbij (Zuid) t.o.v. substation
+    # Dit zorgt voor logische lijnen richting het zuiden.
+    sorted_turbs = sorted(turbines, key=lambda p: p[1], reverse=True)
+    
+    strings = []
+    totale_lengte = 0
+    
+    # Maak groepjes van 6 (standaard voor 66kV kabels)
+    chunk_size = 6
+    for i in range(0, len(sorted_turbs), chunk_size):
+        group = sorted_turbs[i : i+chunk_size]
+        
+        # Binnen de groep, sorteer ze op een logische lijn (bijv. van West naar Oost)
+        # Zodat de kabel niet kriskras gaat.
+        group = sorted(group, key=lambda p: p[0])
+        
+        # Verbind de punten in de groep
+        string_path = []
+        for j in range(len(group) - 1):
+            p1 = group[j]
+            p2 = group[j+1]
+            string_path.append((p1, p2))
+            totale_lengte += np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+            
+        # Verbind de laatste turbine met het Substation (Export)
+        last_t = group[-1]
+        string_path.append((last_t, SUBSTATION))
+        totale_lengte += np.sqrt((last_t[0]-SUBSTATION[0])**2 + (last_t[1]-SUBSTATION[1])**2)
+        
+        strings.append(string_path)
+        
+    return strings, totale_lengte
+
+# A. Validatie
+goede_turbines, slechte_turbines = validate_turbines(turbines) 
+
+# Check if we have turbines left before calculating cables
+if not goede_turbines:
+    print("Geen geldige turbines gevonden!")
+else:
+    # B. Kabels trekken
+    kabel_trajecten, kabel_lengte_meters = bereken_kabels(goede_turbines)
+    kabel_lengte_km = (kabel_lengte_meters * 1.05) / 1000 
+
+
+
+for turbine in goede_turbines:
+    totaal_vermogen += 14
+print("Totaal vermogen: " + str(totaal_vermogen) + "MW")
+    
+
+    # ... Plotting code for cables ...
+# --- Plotting the Valid Turbines with Constraints ---
+
+def plot_turbine_buffers(turbine_list, max_dist):
+    """Plots turbines with a 100m inner safety zone and max distance outer zone."""
+    for i, t in enumerate(turbine_list):
+        label_100 = "Turbine (100m safety)" if i == 0 else None
+        label_max = f"Turbine Max Dist ({max_dist}m)" if i == 0 else None
+        
+        # 1. Plot the turbine center point
+        ax.plot(t[0], t[1], marker='^', color='green', markersize=6, zorder=5)
+        
+        # 2. Draw the 100m circle (Inner)
+        circle_100 = Circle(t, radius=100, color='green', alpha=0.5, 
+                            linestyle='-', label=label_100)
+        ax.add_patch(circle_100)
+        
+        # 3. Draw the Max Distance circle (Outer)
+        # We use fill=False to keep the map readable
+        circle_max = Circle(t, radius=max_dist, edgecolor='green', facecolor='none', 
+                            linestyle=':', alpha=0.6, label=label_max)
+        ax.add_patch(circle_max)
+
+# Execute the plotting function
+# Make sure to pass your 'goede_turbines' list and the variable 'max_afstand_turbine'
+plot_turbine_buffers(goede_turbines, max_afstand_turbine)
+
+
+# Re-draw the legend to include these new items
+ax.legend(loc='upper left', framealpha=0.9, fontsize='small')
+
+####################################################################################################
+
 
 # --- 3. OPMAAK ---
 ax.set_aspect('equal')
@@ -327,4 +467,6 @@ ax.set_xlim(min(x_val) - 2000, max(x_val) + 2000)
 ax.set_ylim(min(y_val) - 2000, max(y_val) + 2000)
 
 plt.show()
+
+
 
