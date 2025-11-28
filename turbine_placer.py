@@ -4,56 +4,66 @@ from matplotlib.path import Path
 from matplotlib.widgets import Button
 import numpy as np
 from matplotlib.ticker import MultipleLocator
-import datetime
+import os
+import sys
 
-# --- SETTINGS ---
-MAX_AFSTAND = 1000  # Afstand tussen turbines
+# --- 0. STANDAARD DATA (Backup voor als er geen save-file is) ---
+DEFAULT_START_TURBINES = [
+    (556629.9, 5849067.5), (557704.5, 5849180.6), (558779.1, 5849265.5),
+    (555922.9, 5847964.7), (557025.8, 5848134.3), (558552.8, 5848049.5),
+    (556545.1, 5846635.6), (557676.2, 5846635.6), (555357.4, 5846607.3),
+    (554084.8, 5845476.1), (556460.2, 5845504.4), (557732.8, 5845476.1),
+    (553151.6, 5844797.5), (554113.1, 5844231.9), (557676.2, 5844231.9),
+    (555187.7, 5845532.7), (552388.1, 5843807.7), (551539.8, 5842818.0),
+    (550719.7, 5841941.3), (549984.4, 5841121.2), (549729.9, 5840103.2),
+    (550578.3, 5839424.5), (552048.8, 5840866.7), (552812.3, 5841573.7),
+    (553688.9, 5842224.1), (553293.0, 5840668.8), (551228.7, 5838434.8),
+    (552020.5, 5839170.0), (551370.1, 5840131.5), (552077.1, 5837699.5),
+    (553095.1, 5836144.2), (553886.9, 5838123.7), (554056.6, 5839170.0),
+    (554282.8, 5840301.2), (554509.0, 5841404.0), (555668.4, 5840527.4),
+    (555555.3, 5839226.6), (555413.9, 5838038.9), (556771.3, 5839198.3),
+    (556799.6, 5840329.4), (556516.8, 5841460.6), (557676.2, 5842902.8),
+    (555159.4, 5842959.3), (556488.5, 5842959.3), (554000.0, 5835097.9),
+    (555102.9, 5834730.3), (552897.1, 5839707.3), (553547.5, 5837105.7),
+    (554509.0, 5836002.8), (555611.9, 5835663.5), (555272.5, 5844260.2),
+    (556403.7, 5844260.2),
+]
+
+# --- 1. DATA INLADEN (Slimme Import) ---
+# We voegen de huidige map toe aan sys.path om zeker te zijn dat we kunnen importeren
+sys.path.append(os.getcwd())
+
+LOADED_TURBINES = []
+LOADED_CABLES = []
+
+try:
+    # Probeer te importeren van het save-bestand
+    # We gebruiken reload om zeker te zijn dat we de laatste versie hebben als je in een IDE werkt
+    import importlib
+    import kavel_data
+    importlib.reload(kavel_data)
+    
+    print(">>> Opgeslagen ontwerp 'kavel_data.py' gevonden! Laden...")
+    LOADED_TURBINES = kavel_data.opgeslagen_turbines
+    LOADED_CABLES = kavel_data.opgeslagen_kabels
+    print(f">>> {len(LOADED_TURBINES)} turbines en {len(LOADED_CABLES)} kabels ingeladen.")
+
+except ImportError:
+    print(">>> Geen 'kavel_data.py' gevonden (of bevat fouten).")
+    print(">>> Starten met standaard opstelling.")
+    LOADED_TURBINES = DEFAULT_START_TURBINES
+    LOADED_CABLES = []
+
+# --- CONFIGURATIE ---
+
+SUBSTATION = (554500.0, 5837000.0)
+MAX_AFSTAND = 1000
 MIN_DISTANCE_OBSTACLES = 100
-SUBSTATION = (557366.0, 5838067.0)
-EXPORT_FILE = "turbine_export.txt"
 
-# --- DATA (Kavel & Zones) ---
-kavel_coords = [
-    (549259.1, 5840513.5), (558353.9, 5851409.2),
-    (559589.1, 5849713.0), (556672.6, 5834433.9),
-    (555572.5, 5832506.4)
-]
-
-onderhouds_zones = [
-    [(554655.0, 5846977.8), (559463.7, 5849056.5), (559395.8, 5848700.3), (554228.2, 5846466.4)],
-    [(553245.8, 5835457.2), (554005.3, 5836386.7), (554107.8, 5836542.6), (553975.5, 5836679.9), 
-     (553904.2, 5836856.6), (553904.3, 5837047.3), (553975.7, 5837224.0), (554127.3, 5837458.2), 
-     (554305.1, 5837647.1), (554520.1, 5837763.4), (554760.2, 5837809.4), (555003.1, 5837780.9), 
-     (555209.1, 5837689.8), (555690.6, 5837377.1), (556774.0, 5837283.6), (556852.5, 5837288.7), 
-     (556923.4, 5837322.6), (556976.0, 5837381.1), (557366.2, 5838067.8), (556989.3, 5836093.1), 
-     (556749.8, 5836080.7), (555326.6, 5836197.4), (555117.8, 5836247.2), (555007.0, 5836300.3), 
-     (554905.0, 5836372.7), (554696.8, 5836553.1), (554572.3, 5836484.2), (554433.4, 5836453.3), 
-     (554291.5, 5836462.6), (554231.5, 5836357.8), (554160.3, 5836260.2), (553372.7, 5835296.3)],
-    [(552344.6, 5844209.9), (552416.8, 5844141.8), (553342.8, 5843590.9), (553593.4, 5843510.7), 
-     (554164.4, 5843473.6), (554217.5, 5843503.2), (554278.1, 5843509.2), (554336.0, 5843490.7), 
-     (554381.8, 5843450.7), (554416.3, 5843405.4), (554441.1, 5843355.6), (554446.1, 5843300.1), 
-     (554409.5, 5842926.0), (554423.5, 5842774.1), (554475.7, 5842595.3), (554547.6, 5842454.8), 
-     (555203.6, 5841709.6), (555343.4, 5841601.0), (555575.8, 5841499.6), (555863.1, 5841429.5), 
-     (555956.4, 5841462.0), (556081.2, 5841395.2), (556102.1, 5841276.5), (556088.3, 5841220.1), 
-     (556020.5, 5841127.5), (555907.1, 5841109.9), (555479.5, 5841214.2), (555189.0, 5841341.1), 
-     (554997.1, 5841490.1), (554297.6, 5842284.8), (554210.6, 5842454.8), (552972.7, 5836897.8), 
-     (552925.6, 5836817.9), (552840.5, 5836781.0), (552750.0, 5836801.1), (552688.7, 5836870.7), 
-     (552679.9, 5836963.0), (554016.4, 5842962.8), (549888.6, 5839715.1), (549702.8, 5839950.7), 
-     (553826.3, 5843194.9), (553537.1, 5843213.7), (553218.8, 5843315.6), (552234.9, 5843900.9), 
-     (552152.0, 5843979.2)]
-]
-
-# Obstakels en wrakken samengevoegd voor overzicht
-# 1. Mijnbouwputten (Wells) - Rood
-mijnbouw_putten = [
-    (556359.0, 5842226.0), (554264.0, 5843361.0),
-    (555958.0, 5841313.0), (552833.0, 5836933.0)
-]
-
-# 2. Gevonden Wrakken (Wrecks Found) - Zwart
-# Uit KNOWN_Arch_Wrecks_FOUND.dbf (Gefilterd op Kavel VI locatie)
-wrakken = [
-    (554776.0, 5842849.0), # Wreck DHY 2292
+kavel_coords = [(549259.1, 5840513.5), (558353.9, 5851409.2), (559589.1, 5849713.0), (556672.6, 5834433.9), (555572.5, 5832506.4)]
+onderhouds_zones = [[(554655.0, 5846977.8), (559463.7, 5849056.5), (559395.8, 5848700.3), (554228.2, 5846466.4)], [(553245.8, 5835457.2), (554005.3, 5836386.7), (554107.8, 5836542.6), (553975.5, 5836679.9), (553904.2, 5836856.6), (553904.3, 5837047.3), (553975.7, 5837224.0), (554127.3, 5837458.2), (554305.1, 5837647.1), (554520.1, 5837763.4), (554760.2, 5837809.4), (555003.1, 5837780.9), (555209.1, 5837689.8), (555690.6, 5837377.1), (556774.0, 5837283.6), (556852.5, 5837288.7), (556923.4, 5837322.6), (556976.0, 5837381.1), (557366.2, 5838067.8), (556989.3, 5836093.1), (556749.8, 5836080.7), (555326.6, 5836197.4), (555117.8, 5836247.2), (555007.0, 5836300.3), (554905.0, 5836372.7), (554696.8, 5836553.1), (554572.3, 5836484.2), (554433.4, 5836453.3), (554291.5, 5836462.6), (554231.5, 5836357.8), (554160.3, 5836260.2), (553372.7, 5835296.3)], [(552344.6, 5844209.9), (552416.8, 5844141.8), (553342.8, 5843590.9), (553593.4, 5843510.7), (554164.4, 5843473.6), (554217.5, 5843503.2), (554278.1, 5843509.2), (554336.0, 5843490.7), (554381.8, 5843450.7), (554416.3, 5843405.4), (554441.1, 5843355.6), (554446.1, 5843300.1), (554409.5, 5842926.0), (554423.5, 5842774.1), (554475.7, 5842595.3), (554547.6, 5842454.8), (555203.6, 5841709.6), (555343.4, 5841601.0), (555575.8, 5841499.6), (555863.1, 5841429.5), (555956.4, 5841462.0), (556081.2, 5841395.2), (556102.1, 5841276.5), (556088.3, 5841220.1), (556020.5, 5841127.5), (555907.1, 5841109.9), (555479.5, 5841214.2), (555189.0, 5841341.1), (554997.1, 5841490.1), (554297.6, 5842284.8), (554210.6, 5842454.8), (552972.7, 5836897.8), (552925.6, 5836817.9), (552840.5, 5836781.0), (552750.0, 5836801.1), (552688.7, 5836870.7), (552679.9, 5836963.0), (554016.4, 5842962.8), (549888.6, 5839715.1), (549702.8, 5839950.7), (553826.3, 5843194.9), (553537.1, 5843213.7), (553218.8, 5843315.6), (552234.9, 5843900.9), (552152.0, 5843979.2)]]
+obstacles = [(556359.0, 5842226.0), (554264.0, 5843361.0),
+    (555958.0, 5841313.0), (552833.0, 5836933.0),(554776.0, 5842849.0), # Wreck DHY 2292
     (555440.0, 5845241.0), # Wreck debris
     (554452.0, 5845413.0),  # Wreck DHY 3427
     (536556, 5817013), #S_0039
@@ -80,12 +90,7 @@ wrakken = [
     (554440, 5845409), #S_0682
     (554448, 5845403), #S_0683
     (555135, 5833591), #S_0711
-    (555444, 5845242) #S_0715
-]
-
-# 3. Magnetische Anomalieën (Metaal in bodem) - Oranje
-# Uit MAG_morethan50nT.dbf (Selectie binnen Kavel VI)
-magnetische_anomalieen = [
+    (555444, 5845242), #S_0715
     (536229 , 5819259), #M_0031
 (536633 , 5822430), #M_0060
 (536955 , 5822654), #M_0087
@@ -193,99 +198,163 @@ magnetische_anomalieen = [
 (554250 , 5846031), #M_1842
 (554359 , 5845984), #M_1865
 (540905 , 5819187) #M_0382
-]
+    ]
 
-# --- THE INTERACTIVE CLASS ---
-class TurbineBuilder:
-    def __init__(self, ax, kavel, zones, wrakken,mijnbouwputten,magnetische_anom):
+class LayoutBuilder:
+    def __init__(self, ax, kavel, zones, obstacles, loaded_turbines, loaded_cables):
         self.ax = ax
         self.kavel_path = Path(kavel)
         self.zone_paths = [Path(z) for z in zones]
-        self.wrakken = wrakken
-        self.mijnbouwputten = mijnbouwputten
-        self.magnetische_anom = magnetische_anom
+        self.obstacles = obstacles
         
-        self.turbines = [] # List of {'point': plot_obj, 'safety': circle_obj, 'coords': (x,y)}
+        self.turbines = [] 
+        self.cables = []   
+        self.mode = 'MOVE'
         self.dragging_idx = None
+        self.cable_start_node = None 
         
-        # Connect events
+        self.substation_obj = {'coords': SUBSTATION, 'is_sub': True}
+        
         self.ax.figure.canvas.mpl_connect('button_press_event', self.on_click)
         self.ax.figure.canvas.mpl_connect('button_release_event', self.on_release)
         self.ax.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
-        # Connect key press for saving with 'w' or 's'
-        self.ax.figure.canvas.mpl_connect('key_press_event', self.on_key)
 
-    def is_valid(self, x, y, my_idx=None):
-        point = (x, y)
-        if not self.kavel_path.contains_point(point): return False
-        for z in self.zone_paths:
-            if z.contains_point(point): return False
-        for obs in self.wrakken:
-            if np.linalg.norm(np.array(point) - np.array(obs)) < MIN_DISTANCE_OBSTACLES: return False
-        for obs in self.magnetische_anom:
-            if np.linalg.norm(np.array(point) - np.array(obs)) < MIN_DISTANCE_OBSTACLES: return False
-        for obs in self.mijnbouwputten:
-            if np.linalg.norm(np.array(point) - np.array(obs)) < MIN_DISTANCE_OBSTACLES: return False
-        for i, t in enumerate(self.turbines):
-            if i == my_idx: continue
-            if np.linalg.norm(np.array(point) - np.array(t['coords'])) < MAX_AFSTAND: return False
-        return True
+        # 1. Turbines inladen
+        if loaded_turbines:
+            for coord in loaded_turbines: 
+                self.add_turbine(coord[0], coord[1], silent=True)
+        
+        # 2. Kabels inladen (Dit is nieuw!)
+        # We moeten de indexen (-1 of 0..N) gebruiken om verbindingen te herstellen
+        if loaded_cables:
+            for idx1, idx2 in loaded_cables:
+                # Vertaal -1 naar 'SUB' voor de add_cable functie
+                node1 = 'SUB' if idx1 == -1 else idx1
+                node2 = 'SUB' if idx2 == -1 else idx2
+                
+                # Veiligheidscheck: bestaat de index wel?
+                max_idx = len(self.turbines) - 1
+                if (node1 != 'SUB' and node1 > max_idx) or (node2 != 'SUB' and node2 > max_idx):
+                    print(f"Waarschuwing: Kabel genegeerd (index {idx1}-{idx2} bestaat niet meer)")
+                    continue
+                    
+                self.add_cable(node1, node2)
 
-    def add_turbine(self, x, y):
+        self.validate_all()
+
+    def add_turbine(self, x, y, silent=False):
         p, = self.ax.plot(x, y, '^', color='green', markersize=8, zorder=10)
         c = Circle((x, y), MAX_AFSTAND/2, color='green', alpha=0.2, ls=':')
         self.ax.add_patch(c)
-        turbine = {'point': p, 'safety': c, 'coords': (x, y)}
-        self.turbines.append(turbine)
-        self.update_color(len(self.turbines)-1)
-        self.ax.figure.canvas.draw()
+        self.turbines.append({'point': p, 'safety': c, 'coords': (x, y), 'is_sub': False})
+        if not silent: 
+            self.update_color(len(self.turbines)-1)
+            self.ax.figure.canvas.draw()
 
     def remove_turbine(self, idx):
-        t = self.turbines.pop(idx)
-        t['point'].remove()
-        t['safety'].remove()
-        self.ax.figure.canvas.draw()
+        t_obj = self.turbines[idx]
+        to_del = [c for c in self.cables if c['start_t'] == t_obj or c['end_t'] == t_obj]
+        for c in to_del:
+            c['line'].remove()
+            self.cables.remove(c)
+        t_obj['point'].remove()
+        t_obj['safety'].remove()
+        self.turbines.pop(idx)
         self.validate_all()
+        self.ax.figure.canvas.draw()
+
+    def add_cable(self, node1, node2):
+        t1 = self.substation_obj if node1 == 'SUB' else self.turbines[node1]
+        t2 = self.substation_obj if node2 == 'SUB' else self.turbines[node2]
+        
+        if t1 == t2: return
+        for c in self.cables:
+            if (c['start_t'] == t1 and c['end_t'] == t2) or (c['start_t'] == t2 and c['end_t'] == t1): return
+        
+        line, = self.ax.plot([t1['coords'][0], t2['coords'][0]], [t1['coords'][1], t2['coords'][1]], color='black', lw=1.5, zorder=5)
+        self.cables.append({'start_t': t1, 'end_t': t2, 'line': line})
+        self.ax.figure.canvas.draw()
+
+    def is_valid(self, x, y, my_idx=None):
+        p = (x, y)
+        if not self.kavel_path.contains_point(p): return False
+        for z in self.zone_paths:
+            if z.contains_point(p): return False
+        for obs in self.obstacles:
+            if np.linalg.norm(np.array(p)-np.array(obs)) < MIN_DISTANCE_OBSTACLES: return False
+        for i, t in enumerate(self.turbines):
+            if i == my_idx: continue
+            if np.linalg.norm(np.array(p)-np.array(t['coords'])) < MAX_AFSTAND: return False
+        return True
 
     def update_color(self, idx):
+        if idx == 'SUB': return
         t = self.turbines[idx]
-        valid = self.is_valid(t['coords'][0], t['coords'][1], my_idx=idx)
-        color = 'green' if valid else 'red'
+        if self.mode == 'CABLE' and idx == self.cable_start_node: color = 'orange'
+        else: color = 'green' if self.is_valid(t['coords'][0], t['coords'][1], idx) else 'red'
         t['point'].set_color(color)
         t['safety'].set_color(color)
 
     def validate_all(self):
-        for i in range(len(self.turbines)):
-            self.update_color(i)
+        for i in range(len(self.turbines)): self.update_color(i)
+
+    def reset_colors(self):
+        self.validate_all()
+
+    def toggle_mode(self, event=None):
+        self.mode = 'CABLE' if self.mode == 'MOVE' else 'MOVE'
+        self.cable_start_node = None
+        self.reset_colors()
+        event.inaxes.texts[0].set_text(f"Mode: {self.mode}")
         self.ax.figure.canvas.draw()
 
     def on_click(self, event):
         if event.inaxes != self.ax: return
         
-        # Check click on existing
-        clicked_idx = None
-        for i, t in enumerate(self.turbines):
-            dist = np.hypot(t['coords'][0] - event.xdata, t['coords'][1] - event.ydata)
-            if dist < 200: 
-                clicked_idx = i
-                break
+        clicked_node = None
+        if np.hypot(SUBSTATION[0]-event.xdata, SUBSTATION[1]-event.ydata) < 300:
+            clicked_node = 'SUB'
+        else:
+            for i, t in enumerate(self.turbines):
+                if np.hypot(t['coords'][0]-event.xdata, t['coords'][1]-event.ydata) < 300:
+                    clicked_node = i
+                    break
         
-        if event.button == 1: # Left
-            if clicked_idx is not None:
-                self.dragging_idx = clicked_idx
-            else:
-                self.add_turbine(event.xdata, event.ydata)
-        elif event.button == 3: # Right
-            if clicked_idx is not None:
-                self.remove_turbine(clicked_idx)
+        if self.mode == 'MOVE':
+            if clicked_node == 'SUB': return 
+            if event.button == 1: 
+                if clicked_node is not None: self.dragging_idx = clicked_node
+                else: self.add_turbine(event.xdata, event.ydata)
+            elif event.button == 3 and clicked_node is not None: 
+                self.remove_turbine(clicked_node)
+                
+        elif self.mode == 'CABLE':
+            if event.button == 1 and clicked_node is not None:
+                if self.cable_start_node is None:
+                    self.cable_start_node = clicked_node
+                    self.update_color(clicked_node)
+                    self.ax.figure.canvas.draw()
+                else:
+                    self.add_cable(self.cable_start_node, clicked_node)
+                    self.cable_start_node = None
+                    self.reset_colors()
+                    self.ax.figure.canvas.draw()
+            elif event.button == 3:
+                self.cable_start_node = None
+                self.reset_colors()
+                self.ax.figure.canvas.draw()
 
     def on_motion(self, event):
         if self.dragging_idx is None or event.inaxes != self.ax: return
         x, y = event.xdata, event.ydata
         t = self.turbines[self.dragging_idx]
         t['coords'] = (x, y)
-        t['point'].set_data([x], [y]) # Pass as sequence
+        t['point'].set_data([x], [y])
         t['safety'].center = (x, y)
+        for c in self.cables:
+            if c['start_t'] == t or c['end_t'] == t:
+                c['line'].set_data([c['start_t']['coords'][0], c['end_t']['coords'][0]], 
+                                   [c['start_t']['coords'][1], c['end_t']['coords'][1]])
         self.update_color(self.dragging_idx)
         self.ax.figure.canvas.draw()
 
@@ -293,79 +362,57 @@ class TurbineBuilder:
         if self.dragging_idx is not None:
             self.dragging_idx = None
             self.validate_all()
-    
-    def on_key(self, event):
-        if event.key in ['w', 's']: # Write / Save
-            self.save_to_file()
 
-    def save_to_file(self, event=None):
-        """Writes current valid coordinates to a file and prints them."""
+    def save(self, event=None):
+        filename = "kavel_data.py"
         coords = [t['coords'] for t in self.turbines]
+        conns = []
+        for c in self.cables:
+            if c['start_t']['is_sub']: idx1 = -1
+            else: idx1 = self.turbines.index(c['start_t'])
+            
+            if c['end_t']['is_sub']: idx2 = -1
+            else: idx2 = self.turbines.index(c['end_t'])
+            
+            conns.append((idx1, idx2))
         
-        print("\n" + "="*40)
-        print(f"SAVING {len(coords)} TURBINES...")
-        
-        try:
-            with open(EXPORT_FILE, "w") as f:
-                f.write("turbines = [\n")
-                for x, y in coords:
-                    line = f"    ({x:.1f}, {y:.1f}),"
-                    f.write(line + "\n")
-                    print(line) # Also print to console
-                f.write("]\n")
-            print(f"Successfully saved to: {EXPORT_FILE}")
-            print("="*40 + "\n")
-        except Exception as e:
-            print(f"Error saving file: {e}")
+        with open(filename, 'w') as f:
+            f.write("# Dit bestand is automatisch gegenereerd door de ontwerper\n")
+            f.write("# Index -1 betekent het Substation\n")
+            f.write("opgeslagen_turbines = [\n")
+            for c in coords: f.write(f"    ({c[0]:.1f}, {c[1]:.1f}),\n")
+            f.write("]\n\n")
+            f.write("opgeslagen_kabels = [\n")
+            for cn in conns: f.write(f"    {cn},\n")
+            f.write("]\n")
+        print(f"Opgeslagen in {filename}! Sluit dit venster en run script 2.")
 
-# --- MAIN PLOT ---
-fig, ax = plt.subplots(figsize=(12, 16))
+# --- UI SETUP ---
+fig, ax = plt.subplots(figsize=(12, 16), layout='constrained')
+ax.add_patch(Polygon(kavel_coords, closed=True, edgecolor='blue', facecolor='#e6f2ff', alpha=0.4))
+for z in onderhouds_zones: ax.add_patch(Polygon(z, closed=True, facecolor='grey', alpha=0.3))
+for obs in obstacles: ax.add_patch(Circle(obs, 100, color='red', alpha=0.3))
 
-# Background
-kavel_poly = Polygon(kavel_coords, closed=True, facecolor='#e6f2ff', edgecolor='blue', alpha=0.5, label='Kavel')
-ax.add_patch(kavel_poly)
-for i, z in enumerate(onderhouds_zones):
-    label = "Zone" if i == 0 else None
-    ax.add_patch(Polygon(z, closed=True, facecolor='grey', alpha=0.5, label=label))
-for i, obs in enumerate(magnetische_anomalieen):
-    label = "Magnetische Anomalie" if i == 0 else None
-    ax.add_patch(Circle(obs, 100, color='green', alpha=0.5, label=label))
-for i, obs in enumerate(wrakken):
-    label = "Wrak" if i == 0 else None
-    ax.add_patch(Circle(obs, 100, color='yellow', alpha=0.5, label=label))
-for i, obs in enumerate(mijnbouw_putten):
-    label = "Mijnbouw Put" if i == 0 else None
-    ax.add_patch(Circle(obs, 100, color='red', alpha=0.5, label=label))
+ax.plot(SUBSTATION[0], SUBSTATION[1], 's', color='purple', markersize=12, label='Substation (Klikbaar)', zorder=20)
 
-# 1. FIX VERTICAL TEXT (Layout)
-ax.xaxis.set_major_locator(MultipleLocator(1000))
-ax.xaxis.set_minor_locator(MultipleLocator(100))
-ax.tick_params(axis='x', rotation=90, labelsize=9) # Draai de tekst 90 graden
-ax.grid(which='major', color='#CCCCCC', lw=1)
-ax.grid(which='minor', color='#E5E5E5', lw=0.5)
-ax.minorticks_on()
 ax.set_aspect('equal')
-
-# Zoom settings
-ax.set_xlim(548000, 560000)
-ax.set_ylim(5832000, 5852000)
-ax.set_title("Interactive Turbine Planner\nLinks: Plaats/Sleep | Rechts: Verwijder | Knop/Toets 'w': Opslaan")
+ax.set_title("Ontwerp Tool\nStartdata geladen uit bestand indien aanwezig")
+ax.xaxis.set_major_locator(MultipleLocator(1000))
+ax.grid(which='major', alpha=0.5)
+ax.set_xlim(548000, 560000); ax.set_ylim(5832000, 5852000)
 ax.legend(loc='upper left')
 
-# START THE TOOL
-builder = TurbineBuilder(ax, kavel_coords, onderhouds_zones, wrakken,mijnbouw_putten,magnetische_anomalieen)
+# HIER GEVEN WE NU DE GELADEN DATA MEE
+tool = LayoutBuilder(ax, kavel_coords, onderhouds_zones, obstacles, 
+                     loaded_turbines=LOADED_TURBINES, 
+                     loaded_cables=LOADED_CABLES)
 
-# 2. SAVE BUTTON (Knop toevoegen)
-# We maken een nieuwe kleine 'axes' (ruimte) voor de knop
-# [links, onder, breedte, hoogte] in fracties van het scherm
-ax_save = plt.axes([0.8, 0.90, 0.1, 0.04]) 
-btn = Button(ax_save, 'Save .txt', color='lightgreen', hovercolor='0.975')
-btn.on_clicked(builder.save_to_file)
+ax_mode = plt.axes([0.65, 0.92, 0.12, 0.04])
+btn_mode = Button(ax_mode, 'Mode: MOVE', color='lightblue', hovercolor='white')
+btn_mode.on_clicked(tool.toggle_mode)
 
-# 3. EXTRA WITRUIMTE ONDERAAN
-plt.subplots_adjust(bottom=0.15, top=0.90) 
-
-print("Interactieve tool gestart.")
-print(f"Druk op de 'Save' knop of 'w' op je toetsenbord om coördinaten op te slaan in '{EXPORT_FILE}'.")
+ax_save = plt.axes([0.80, 0.92, 0.12, 0.04])
+btn_save = Button(ax_save, 'Save', color='lightgreen', hovercolor='white')
+btn_save.on_clicked(tool.save)
 
 plt.show()

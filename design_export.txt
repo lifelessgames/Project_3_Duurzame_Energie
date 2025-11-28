@@ -1,4 +1,4 @@
-turbines = [
+turbines_start_data = [
     (556629.9, 5849067.5),
     (557704.5, 5849180.6),
     (558779.1, 5849265.5),
@@ -51,4 +51,9 @@ turbines = [
     (555611.9, 5835663.5),
     (555272.5, 5844260.2),
     (556403.7, 5844260.2),
+]
+
+# Lijst van (index_A, index_B) verbindingen
+kabel_verbindingen = [
+    
 ]

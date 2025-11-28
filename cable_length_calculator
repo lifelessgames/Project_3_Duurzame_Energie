@@ -1,0 +1,101 @@
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon, Circle
+from matplotlib.path import Path
+from matplotlib.ticker import MultipleLocator
+import numpy as np
+
+# --- 1. DATA INLADEN ---
+try:
+    import kavel_data
+    turbines = kavel_data.opgeslagen_turbines
+    kabels_indices = kavel_data.opgeslagen_kabels
+    print(f"Succesvol ingeladen: {len(turbines)} turbines en {len(kabels_indices)} kabels.")
+except ImportError:
+    print("FOUT: Kan 'kavel_data.py' niet vinden! Draai eerst script 1 en klik op Save.")
+    exit()
+
+# --- 2. INSTELLINGEN ---
+VERMOGEN_PER_TURBINE = 14 # MW
+KABEL_CURVE_FACTOR = 1.05
+MAX_AFSTAND = 1000
+SUBSTATION = (554500.0, 5837000.0)
+
+# Geometrie
+kavel_coords = [(549259.1, 5840513.5), (558353.9, 5851409.2), (559589.1, 5849713.0), (556672.6, 5834433.9), (555572.5, 5832506.4)]
+onderhouds_zones = [[(554655.0, 5846977.8), (559463.7, 5849056.5), (559395.8, 5848700.3), (554228.2, 5846466.4)], [(553245.8, 5835457.2), (554005.3, 5836386.7), (554107.8, 5836542.6), (553975.5, 5836679.9), (553904.2, 5836856.6), (553904.3, 5837047.3), (553975.7, 5837224.0), (554127.3, 5837458.2), (554305.1, 5837647.1), (554520.1, 5837763.4), (554760.2, 5837809.4), (555003.1, 5837780.9), (555209.1, 5837689.8), (555690.6, 5837377.1), (556774.0, 5837283.6), (556852.5, 5837288.7), (556923.4, 5837322.6), (556976.0, 5837381.1), (557366.2, 5838067.8), (556989.3, 5836093.1), (556749.8, 5836080.7), (555326.6, 5836197.4), (555117.8, 5836247.2), (555007.0, 5836300.3), (554905.0, 5836372.7), (554696.8, 5836553.1), (554572.3, 5836484.2), (554433.4, 5836453.3), (554291.5, 5836462.6), (554231.5, 5836357.8), (554160.3, 5836260.2), (553372.7, 5835296.3)], [(552344.6, 5844209.9), (552416.8, 5844141.8), (553342.8, 5843590.9), (553593.4, 5843510.7), (554164.4, 5843473.6), (554217.5, 5843503.2), (554278.1, 5843509.2), (554336.0, 5843490.7), (554381.8, 5843450.7), (554416.3, 5843405.4), (554441.1, 5843355.6), (554446.1, 5843300.1), (554409.5, 5842926.0), (554423.5, 5842774.1), (554475.7, 5842595.3), (554547.6, 5842454.8), (555203.6, 5841709.6), (555343.4, 5841601.0), (555575.8, 5841499.6), (555863.1, 5841429.5), (555956.4, 5841462.0), (556081.2, 5841395.2), (556102.1, 5841276.5), (556088.3, 5841220.1), (556020.5, 5841127.5), (555907.1, 5841109.9), (555479.5, 5841214.2), (555189.0, 5841341.1), (554997.1, 5841490.1), (554297.6, 5842284.8), (554210.6, 5842454.8), (552972.7, 5836897.8), (552925.6, 5836817.9), (552840.5, 5836781.0), (552750.0, 5836801.1), (552688.7, 5836870.7), (552679.9, 5836963.0), (554016.4, 5842962.8), (549888.6, 5839715.1), (549702.8, 5839950.7), (553826.3, 5843194.9), (553537.1, 5843213.7), (553218.8, 5843315.6), (552234.9, 5843900.9), (552152.0, 5843979.2)]]
+obstacles = [(556359.0, 5842226.0), (554264.0, 5843361.0), (555958.0, 5841313.0), (552833.0, 5836933.0), (554776.0, 5842849.0), (555440.0, 5845241.0), (554452.0, 5845413.0),(536229 , 5819259), (554776.0, 5842849.0), (555440.0, 5845241.0), (554452.0, 5845413.0), (536556, 5817013), (538628, 5824408), (538755, 5824686), (538786, 5824717), (553839, 5842543), (540104, 5829487), (551674, 5838482), (551689, 5838477), (554440, 5845409), (554448, 5845403), (555135, 5833591), (555444, 5845242)]
+
+# --- 3. BEREKENINGEN ---
+totaal_vermogen = len(turbines) * VERMOGEN_PER_TURBINE
+
+totale_lengte_meters = 0
+for idx1, idx2 in kabels_indices:
+    # Als index -1 is, gebruik SUBSTATION coords, anders turbine coords
+    p1 = np.array(SUBSTATION) if idx1 == -1 else np.array(turbines[idx1])
+    p2 = np.array(SUBSTATION) if idx2 == -1 else np.array(turbines[idx2])
+    
+    dist = np.linalg.norm(p1 - p2)
+    totale_lengte_meters += dist
+
+totale_lengte_km = (totale_lengte_meters * KABEL_CURVE_FACTOR) / 1000
+
+# Print Rapport
+print("\n" + "="*40)
+print(f"RAPPORT KAVEL VI ONTWERP")
+print("="*40)
+print(f"Aantal Turbines:    {len(turbines)}")
+print(f"Totaal Vermogen:    {totaal_vermogen} MW")
+print(f"Aantal Kabeldelen:  {len(kabels_indices)}")
+print(f"Totale Kabellengte: {totale_lengte_km:.3f} km")
+print("="*40 + "\n")
+
+# --- 4. PLOTTEN ---
+fig, ax = plt.subplots(figsize=(12, 18), layout='constrained')
+
+# Achtergrond
+ax.add_patch(Polygon(kavel_coords, closed=True, edgecolor='blue', facecolor='#e6f2ff', alpha=0.4, label='Kavel VI'))
+for z in onderhouds_zones: ax.add_patch(Polygon(z, closed=True, facecolor='grey', alpha=0.3))
+for obs in obstacles: ax.add_patch(Circle(obs, 100, color='red', alpha=0.3))
+ax.plot(SUBSTATION[0], SUBSTATION[1], 's', color='purple', markersize=10, label='Substation', zorder=20)
+
+# 1. KABELS TEKENEN
+for idx1, idx2 in kabels_indices:
+    p1 = SUBSTATION if idx1 == -1 else turbines[idx1]
+    p2 = SUBSTATION if idx2 == -1 else turbines[idx2]
+    ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='black', lw=2, zorder=5)
+
+# 2. TURBINES TEKENEN
+valid_count = 0
+for i, t in enumerate(turbines):
+    # Validatie Check (simpel)
+    point = (t[0], t[1])
+    is_valid = True
+    if not Path(kavel_coords).contains_point(point): is_valid = False
+    for z in onderhouds_zones:
+        if Path(z).contains_point(point): is_valid = False
+    for obs in obstacles:
+        if np.linalg.norm(np.array(point)-np.array(obs)) < 100: is_valid = False
+    for j, other in enumerate(turbines):
+        if i == j: continue
+        if np.linalg.norm(np.array(point)-np.array(other)) < MAX_AFSTAND: is_valid = False
+            
+    color = 'green' if is_valid else 'red'
+    if is_valid: valid_count += 1
+    
+    ax.plot(t[0], t[1], '^', color=color, markersize=8, zorder=10)
+    ax.add_patch(Circle(t, 100, color=color, alpha=0.4)) 
+    ax.add_patch(Circle(t, MAX_AFSTAND/2, color=color, alpha=0.1, ls=':')) 
+
+ax.tick_params(axis='x', rotation=90, labelsize=10)
+ax.set_aspect('equal')
+ax.set_title(f"Definitief Ontwerp Kavel VI\n{len(turbines)} Turbines ({totaal_vermogen} MW) - Kabels: {totale_lengte_km:.2f} km")
+ax.xaxis.set_major_locator(MultipleLocator(1000))
+ax.grid(which='major', alpha=0.5)
+ax.set_xlim(548000, 560000)
+ax.set_ylim(5832000, 5852000)
+ax.legend(loc='upper left')
+
+if valid_count < len(turbines):
+    print(f"LET OP: Er zijn {len(turbines) - valid_count} ongeldige (rode) turbines!")
+
+plt.show()

@@ -4,27 +4,120 @@ import numpy as np
 from matplotlib.ticker import MultipleLocator
 from matplotlib.path import Path
 
+
 max_afstand_turbine = 1000
 totaal_vermogen = 0
-
 turbines = [
-    (557506.5, 5849944.1),
-    (558863.9, 5849915.9),
-    (556856.1, 5848982.7),
-    (558072.1, 5849039.2),
-    (558807.4, 5848077.8),
-    (557987.3, 5847427.4),
-    (556912.7, 5847116.3),
-    (555838.1, 5846720.4),
-    (554028.3, 5845730.6),
-    (555159.4, 5845730.6),
-    (556347.1, 5845843.8),
-    (557421.7, 5846183.1),
-    (558552.8, 5846381.1)
+    (556629.9, 5849067.5),
+    (557704.5, 5849180.6),
+    (558779.1, 5849265.5),
+    (555922.9, 5847964.7),
+    (557025.8, 5848134.3),
+    (558552.8, 5848049.5),
+    (556545.1, 5846635.6),
+    (557676.2, 5846635.6),
+    (555357.4, 5846607.3),
+    (554084.8, 5845476.1),
+    (556460.2, 5845504.4),
+    (557732.8, 5845476.1),
+    (552968.3, 5844203.3),
+    (554113.1, 5844231.9),
+    (557676.2, 5844231.9),
+    (555187.7, 5845532.7),
+    (552488.5, 5843219.7),
+    (551648.8, 5842379.9),
+    (550833.0, 5841612.2),
+    (549993.3, 5840844.4),
+    (550578.3, 5839424.5),
+    (552048.8, 5840866.7),
+    (552812.3, 5841573.7),
+    (553688.9, 5842224.1),
+    (553293.0, 5840668.8),
+    (551228.7, 5838434.8),
+    (552020.5, 5839170.0),
+    (551370.1, 5840131.5),
+    (552077.1, 5837699.5),
+    (553095.1, 5836144.2),
+    (553886.9, 5838123.7),
+    (554056.6, 5839170.0),
+    (554282.8, 5840301.2),
+    (554509.0, 5841404.0),
+    (555668.4, 5840527.4),
+    (555555.3, 5839226.6),
+    (555413.9, 5838038.9),
+    (556771.3, 5839198.3),
+    (556799.6, 5840329.4),
+    (556516.8, 5841460.6),
+    (557676.2, 5842902.8),
+    (555159.4, 5842959.3),
+    (556488.5, 5842959.3),
+    (554000.0, 5835097.9),
+    (555102.9, 5834730.3),
+    (552897.1, 5839707.3),
+    (553547.5, 5837105.7),
+    (554509.0, 5836002.8),
+    (555611.9, 5835663.5),
+    (555272.5, 5844260.2),
+    (556403.7, 5844260.2)
 ]
 
-# Het TenneT Stopcontac
-SUBSTATION = (557366.0, 5838067.0)
+cables = [
+    (29, 43),
+    (43, 44),
+    (44, 48),
+    (48, 47),
+    (47, 46),
+    (46, -1),
+    (0, 3),
+    (3, 4),
+    (4, 1),
+    (1, 2),
+    (2, 5),
+    (5, 7),
+    (7, 11),
+    (11, 14),
+    (14, 40),
+    (40, -1),
+    (9, 15),
+    (15, 8),
+    (8, 6),
+    (6, 10),
+    (10, 50),
+    (42, 50),
+    (42, 39),
+    (39, 38),
+    (38, 37),
+    (37, -1),
+    (12, 13),
+    (13, 49),
+    (49, 41),
+    (41, 33),
+    (33, 34),
+    (34, 35),
+    (35, 36),
+    (36, -1),
+    (19, 20),
+    (18, 19),
+    (18, 27),
+    (28, 25),
+    (25, 20),
+    (26, 27),
+    (26, -1),
+    (16, 17),
+    (16, 23),
+    (23, 22),
+    (22, 21),
+    (21, 45),
+    (45, -1),
+    (24, 32),
+    (32, 31),
+    (31, 30),
+    (30, -1)
+]
+
+
+# Het TenneT Stopcontcat
+SUBSTATION = (554500.0, 5837000.0)
 
 
 
@@ -342,10 +435,25 @@ else:
 for turbine in goede_turbines:
     totaal_vermogen += 14
 print("Totaal vermogen: " + str(totaal_vermogen) + "MW")
-    
+print("Totaal Aantal Turbines: " + str(len(turbines)))    
 
-    # ... Plotting code for cables ...
-# --- Plotting the Valid Turbines with Constraints ---
+def plot_cables(cable_list,turbine_list):
+    for start_idx, end_idx in cable_list:
+        # 1. Get the coordinates
+        if start_idx != -1:
+            t1 = turbine_list[start_idx]
+        else:
+            t1 = SUBSTATION
+        
+        if end_idx != -1:
+            t2 = turbine_list[end_idx]
+        else:
+            t2 = SUBSTATION
+        # 2. Draw the line (x1 to x2, y1 to y2)
+        ax.plot([t1[0], t2[0]], [t1[1], t2[1]], color='black', lw=1.2, zorder=1)
+
+    print("Plotted cable")
+
 
 def plot_turbine_buffers(turbine_list, max_dist):
     """Plots turbines with a 100m inner safety zone and max distance outer zone."""
@@ -354,10 +462,10 @@ def plot_turbine_buffers(turbine_list, max_dist):
         label_max = f"Turbine Max Dist ({max_dist}m)" if i == 0 else None
         
         # 1. Plot the turbine center point
-        ax.plot(t[0], t[1], marker='^', color='green', markersize=6, zorder=5)
+        ax.plot(t[0], t[1], marker='^', color='green', markersize=2, zorder=5,alpha = 0.8)
         
         # 2. Draw the 100m circle (Inner)
-        circle_100 = Circle(t, radius=120, color='green', alpha=0.5, 
+        circle_100 = Circle(t, radius=120, color='green', alpha=0.7, 
                             linestyle='-', label=label_100)
         ax.add_patch(circle_100)
         
@@ -370,6 +478,8 @@ def plot_turbine_buffers(turbine_list, max_dist):
 # Execute the plotting function
 # Make sure to pass your 'goede_turbines' list and the variable 'max_afstand_turbine'
 plot_turbine_buffers(goede_turbines, max_afstand_turbine)
+plot_cables(cables,turbines)
+ax.plot(SUBSTATION[0], SUBSTATION[1], 's', color='purple', markersize=12, label='Substation Alpha', zorder=20)
 
 
 # Re-draw the legend to include these new items
