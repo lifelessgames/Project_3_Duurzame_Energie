@@ -37,7 +37,7 @@ kavel_coords = [
 ]
 
 # B. Onderhoudszones
-onderhouds_zones_lijst = [
+onderhouds_zones = [
     # Zone 1
     [
         (547257.3 , 5838115.3),
@@ -108,7 +108,7 @@ mijnbouw_putten = [
 
 # 2. Gevonden Wrakken (Wrecks Found) - Zwart
 # Uit KNOWN_Arch_Wrecks_FOUND.dbf (Gefilterd op Kavel VI locatie)
-wrakken_gevonden = [
+wrakken = [
     (554776.0, 5842849.0), # Wreck DHY 2292
     (555440.0, 5845241.0), # Wreck debris
     (554452.0, 5845413.0),  # Wreck DHY 3427
@@ -260,7 +260,7 @@ kavel_vorm = Polygon(kavel_coords, closed=True,
 ax.add_patch(kavel_vorm)
 
 # B. Onderhoudszones (Grijs - Lijst van Lijsten)
-for i, zone in enumerate(onderhouds_zones_lijst):
+for i, zone in enumerate(onderhouds_zones):
     label = "Onderhoudszone (Verboden)" if i == 0 else None
     mz_poly = Polygon(zone, closed=True, 
                       edgecolor='grey', facecolor='grey', 
@@ -280,7 +280,7 @@ def plot_circles(coord_list, color, marker, label_text):
 
 # Plotten van de drie types punten
 plot_circles(mijnbouw_putten, 'red', 'X', 'Mijnbouwput (100m)')
-plot_circles(wrakken_gevonden, 'black', 'o', 'Wrak (100m)')
+plot_circles(wrakken, 'black', 'o', 'Wrak (100m)')
 plot_circles(magnetische_anomalieen, 'orange', '.', 'Magnetisch Contact (100m)')
 
 
