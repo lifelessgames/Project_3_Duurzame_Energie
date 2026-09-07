@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projecten — RHE Online</title>
+<meta name="description" content="Bekijk de windparken en netaansluitingen die RHE Online heeft ontwikkeld en gerealiseerd in Nederland.">
+<meta name="theme-color" content="#0a5c47">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-src https://www.openstreetmap.org; base-uri 'self'; form-action 'self'">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Ga naar inhoud</a>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" fill="currentColor" opacity="0.12"/>
+        <path d="M24 6 L24 24 L38 15" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M24 24 L24 42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M24 24 L11 30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="24" cy="24" r="3.2" fill="currentColor"/>
+      </svg>
+      <span>RHE Online<span class="tag">Duurzame energie</span></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Hoofdmenu">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="over-ons.html">Over ons</a></li>
+        <li><a href="projecten.html" aria-current="page">Projecten</a></li>
+        <li><a href="diensten.html">Diensten</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href="contact.html" class="btn btn-primary">Neem contact op</a>
+      <button class="nav-toggle" type="button" aria-label="Menu openen" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="page-hero" style="--hero-image:url('images/windpark-7-onderstation.png')">
+    <div class="container">
+      <p class="breadcrumb"><a href="index.html">Home</a> / Projecten</p>
+      <p class="eyebrow">Ons portfolio</p>
+      <h1>Windparken en netaansluitingen</h1>
+      <p>Een overzicht van projecten die we hebben ontwikkeld, gebouwd en aangesloten op het elektriciteitsnet.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="projects-heading">
+    <div class="container">
+      <h2 class="visually-hidden" id="projects-heading" style="position:absolute;left:-9999px;">Projectoverzicht</h2>
+
+      <div class="filter-bar reveal" role="group" aria-label="Filter projecten op type">
+        <button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">Alle projecten</button>
+        <button class="filter-btn" type="button" data-filter="wind" aria-pressed="false">Windparken</button>
+        <button class="filter-btn" type="button" data-filter="onderstation" aria-pressed="false">Onderstations</button>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="project-card reveal" data-category="wind">
+          <div class="thumb">
+            <span class="tag">Windpark</span>
+            <img src="images/windpark-turbines.png" alt="Windturbines van Windpark 7 in bedrijf" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Windpark 7</h3>
+            <p class="meta">Ontwikkeling &amp; realisatie · 2024</p>
+            <p>Meerdere turbines, ontwikkeld in nauwe afstemming met de lokale gemeenschap en gemeente.</p>
+          </div>
+        </article>
+
+        <article class="project-card reveal" data-category="onderstation">
+          <div class="thumb">
+            <span class="tag">Onderstation</span>
+            <img src="images/windpark-7-onderstation.png" alt="Nieuw onderstation bij Windpark 7" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Onderstation Windpark 7</h3>
+            <p class="meta">Netaansluiting · 2024</p>
+            <p>Aanleg van een nieuw onderstation voor een veilige, toekomstbestendige aansluiting op het net.</p>
+          </div>
+        </article>
+
+        <article class="project-card reveal" data-category="wind">
+          <div class="thumb">
+            <span class="tag">Windpark</span>
+            <img src="images/windpark-7.png" alt="Locatie van Windpark 7 vóór plaatsing van de turbines" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Locatievoorbereiding Windpark 7</h3>
+            <p class="meta">Engineering · 2023</p>
+            <p>Grondwerk en voorbereiding van de projectlocatie voorafgaand aan de bouwfase.</p>
+          </div>
+        </article>
+
+        <article class="project-card reveal" data-category="wind">
+          <div class="thumb">
+            <span class="tag">Windpark</span>
+            <img src="images/windpark-turbines.png" alt="Windpark in de avondzon" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Windpark Noorderveld</h3>
+            <p class="meta">Ontwikkeling &amp; beheer · 2019</p>
+            <p>Langjarig beheerd windpark met continue monitoring van prestaties en onderhoud.</p>
+          </div>
+        </article>
+
+        <article class="project-card reveal" data-category="onderstation">
+          <div class="thumb">
+            <span class="tag">Onderstation</span>
+            <img src="images/windpark-7-onderstation.png" alt="Onderstation in aanbouw" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Onderstation Zuidhoek</h3>
+            <p class="meta">Netaansluiting · 2019</p>
+            <p>Uitbreiding van de netcapaciteit voor meerdere aangesloten duurzame energieprojecten.</p>
+          </div>
+        </article>
+
+        <article class="project-card reveal" data-category="wind">
+          <div class="thumb">
+            <span class="tag">Windpark</span>
+            <img src="images/windpark-7.png" alt="Eerste windturbine op locatie" loading="lazy" width="600" height="450">
+          </div>
+          <div class="body">
+            <h3>Windpark De Eerste Polder</h3>
+            <p class="meta">Ontwikkeling &amp; realisatie · 2014</p>
+            <p>Het eerste windpark dat RHE Online volledig zelfstandig heeft ontwikkeld.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt" aria-labelledby="cta-heading">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <div>
+          <h2 id="cta-heading">Heeft u zelf een locatie voor duurzame energie?</h2>
+          <p>We denken graag vrijblijvend mee over de mogelijkheden.</p>
+        </div>
+        <a href="contact.html" class="btn btn-primary">Neem contact op</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col footer-brand">
+        <a href="index.html" class="brand">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="24" cy="24" r="22" fill="currentColor" opacity="0.16"/>
+            <path d="M24 6 L24 24 L38 15" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M24 24 L24 42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M24 24 L11 30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="24" cy="24" r="3.2" fill="currentColor"/>
+          </svg>
+          <span>RHE Online</span>
+        </a>
+        <p>Wij ontwikkelen en realiseren windenergieprojecten in Nederland, van eerste idee tot draaiende turbine.</p>
+        <div class="footer-social">
+          <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="RHE Online op LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3V9zm7 0h3.8v1.7h.05c.53-1 1.83-2.1 3.77-2.1 4.03 0 4.78 2.66 4.78 6.1V21H18v-5.6c0-1.34-.02-3.06-1.87-3.06-1.87 0-2.16 1.46-2.16 2.96V21H10V9z"/></svg>
+          </a>
+          <a href="https://www.x.com" target="_blank" rel="noopener noreferrer" aria-label="RHE Online op X">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 3H21l-6.7 7.6L22 21h-6.4l-4.9-6.4L4.9 21H2.8l7.1-8.1L2 3h6.5l4.5 5.9L18.9 3zm-1.1 16.2h1.2L7.3 4.7H6l11.8 14.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <nav class="footer-col" aria-label="Sitemap">
+        <h4>Navigatie</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="over-ons.html">Over ons</a></li>
+          <li><a href="projecten.html">Projecten</a></li>
+          <li><a href="diensten.html">Diensten</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-col">
+        <h4>Diensten</h4>
+        <ul>
+          <li><a href="diensten.html">Projectontwikkeling</a></li>
+          <li><a href="diensten.html">Netaansluiting</a></li>
+          <li><a href="diensten.html">Participatie</a></li>
+          <li><a href="diensten.html">Asset management</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li>Voorbeeldstraat 1<br>1234 AB Windstad</li>
+          <li><a href="tel:+31000000000">+31 (0)00 000 0000</a></li>
+          <li><a href="mailto:info@rheonline.nl">info@rheonline.nl</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span id="current-year">2026</span> RHE Online. Alle rechten voorbehouden.</p>
+      <p>Herontwerp-concept — geen officiële website.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
